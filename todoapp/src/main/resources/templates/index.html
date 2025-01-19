@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Todoリスト</title>
+	<style>
+		li {
+			display:flex;
+		}
+		.buttons {
+			margin-right:50px;
+			display:flex;
+		}
+		.completed {
+		    text-decoration: line-through;
+		}
+		.view-mode {
+			display:flex;
+		}
+		.edit-mode {
+			display:flex;
+		}
+	</style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Todoリスト</h1>
+    
+    <form th:action="@{/add}" th:object="${todo}" method="post">
+        <input type="text" th:field="*{title}" th:value="*{title}" placeholder="タイトル" required />
+        <input type="text" th:field="*{description}"th:value="*{description}" placeholder="詳細" required />
+        <button type="submit">追加</button>
+    </form>
+
+    <ul>
+        <li th:each="todo : ${todos}">
+			<div class="view-mode">
+				<div class="buttons">
+					<button class="edit-btn" type="button">編集</button>
+					<form th:action="@{/delete/{id}(id=${todo.id})}" method="post">
+				    	<button type="submit">削除</button>
+					</form>
+					<form th:action="@{/complete/{id}(id=${todo.id})}" th:object="${todo}" method="post" class="complete-form">		
+					    <button type="submit" class="complete-button" th:disabled="${todo.isCompleted}">完了</button>
+					</form>
+				</div>
+				<span class="todo-title" th:text="${todo.title}" th:classappend="${todo.isCompleted} ? 'completed' : ''">タイトル</span> - 
+		    	<span class="todo-date" th:text="${todo.formattedCreatedDate}" th:classappend="${todo.isCompleted} ? 'completed' : ''">作成日</span>
+			</div>
+			
+			<div class="edit-mode" style="display:none;">
+			    <form th:action="@{/update/{id}(id=${todo.id})}" th:object="${todo}" method="post">			      
+			        <input type="text" name="title" class="edit-input" th:value="${todo.title}" />
+			        <input type="text" name="description" class="edit-input" th:value="${todo.description}" />			        
+			        <button type="submit">更新</button>
+			    </form>
+				<button class="cancel-btn">キャンセル</button>
+			</div>
+
+        </li>
+    </ul>
+	<script>
+
+	    $(document).ready(function() {
+	        $('.edit-btn').on('click', function() {
+	            $(this).closest('li').find('.view-mode').hide();
+	            $(this).closest('li').find('.edit-mode').show();
+	        });
+
+	        $('.cancel-btn').on('click', function() {
+	            $(this).closest('li').find('.edit-mode').hide();
+	            $(this).closest('li').find('.view-mode').show();
+	        });
+	    });
+		
+		
+		$('li').each(function() {
+			let isCompleted = $(this).find('.todo-checkbox').prop('checked');
+		        if (isCompleted) {
+		            $(this).find('.complete-button').prop('disabled', true).addClass('disabled-button');
+		        }
+		    });
+		
+		$('.complete-form').on('submit', function(event) {
+		    let $button = $(this).find('.complete-button');
+			let $listItem = $(this).closest('li');
+		    $button.prop('disabled', true); 
+            $button.addClass('disabled-button');
+			$listItem.find('.todo-title, .todo-description, .todo-date').addClass('completed');
+		});
+		
+	</script>
+</body>
+</html>
